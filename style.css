@@ -1,4 +1,8 @@
 
+#container {
+	
+}
+
 table {
 	border-spacing: 1px;
 }
@@ -9,10 +13,16 @@ table {
 	border: 1px solid black;
 }
 
+.divs {
+	width: 20px;
+	height: 20px;
+	border: 1px solid black;
+}
+
 .snake {
 	background-color: green;
 }
 
-.food {
+.snake2 {
 	background-color: red;
 }

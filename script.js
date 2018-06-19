@@ -1,10 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 	
-	
-	let direct = "right";
-	let prevdirect = "";
-	
 	// draw table and wirtual board
 	function drawTable(x, y) {
 		const container = document.getElementById("container");
@@ -17,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			table.appendChild(tr);
 			boardArr[i] = [];
 			position[i] = [];
+			//position.push(tr);
 			for (j=0; j < x; j++) {
 				const td = document.createElement("td");
 				tr.appendChild(td);
@@ -26,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				position[i][j] = td;
 			}
 		}
+
 		return [boardArr, x, y,  position];
 	} 
 	
@@ -44,14 +42,14 @@ document.addEventListener('DOMContentLoaded', function() {
 			for (j=0; j < sizeX; j++) {
 				if (board[i][j] == 1) {
 					tdPosition[i][j].classList.add("snake");
-					tdPosition[i][j].classList.remove("food");
+					tdPosition[i][j].classList.remove("snake2");
 				}
 				if (board[i][j] == 2) {
-					tdPosition[i][j].classList.add("food");
+					tdPosition[i][j].classList.add("snake2");
 				}
 				if (board[i][j] == 0) {
 					tdPosition[i][j].classList.remove("snake");
-					tdPosition[i][j].classList.remove("food");
+					tdPosition[i][j].classList.remove("snake2");
 				}
 			}
 		}
@@ -61,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	function snakeMove(snake, boardArr, x, y ) {	
 			// if snake eat itself
 			if (boardArr[snake[0][0]][snake[0][1]] == 1) {
+				clearInterval(intervall);
 				return;
 			}
 			// if snake eat red food
@@ -77,49 +76,79 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	// in which way should snake move
-	function directionMove(snake, x, y,) {
+	function directionMove(snake, x, y, direct, prevdirect) {
 			if (direct == "left") { 
-				if (prevdirect == "right") {
-					snake.reverse();
-					prevdirect = "";
-				}
-				// colllizion with left wall check
-				if (snake[0][1] < 1 ) {
-					return;
-				} 
-				// go left
-				snake.unshift([snake[0][0],snake[0][1]-1]);
+				goLeft(snake, x, y, direct, prevdirect);
 			}	
 			if (direct == "right") { 
-				if (prevdirect == "left") {
-					snake.reverse();
-					prevdirect = "";
-				}
-				if (snake[0][1] >= y-1) {
-					return;
-				} 
-				snake.unshift([snake[0][0],snake[0][1]+1]);
+				goRight(snake, x, y, direct, prevdirect);
 			}
 			if (direct == "up") { 
-				if (prevdirect == "down") {
-					snake.reverse();
-					prevdirect = "";
-				}
-				if (snake[0][0] < 1) {
-					return;
-				} 
-				snake.unshift([snake[0][0]-1,snake[0][1]]);
+				goUp(snake, x, y, direct, prevdirect);
 			}
 			if (direct == "down") { 
-				if (prevdirect == "up") {
-					snake.reverse();
-					prevdirect = "";
-				}
-				if (snake[0][0] >= x-1) {
-					return;
-				} 
-				snake.unshift([snake[0][0]+1,snake[0][1]]);
+				goDown(snake, x, y, direct, prevdirect);
 			}
+	} 
+	
+	
+	function goLeft(snake, x, y, direct, prevdirect) {
+		// if snake goes right and left arrow is clicked, snake go right still
+		if (prevdirect == "right") {
+			goRight(snake, x, y, direct, prevdirect);
+			direct = "right";
+			obj.direction(direct);
+			return;
+		}
+		// colllizion with left wall check
+		if (snake[0][1] < 1 ) {
+			clearInterval(intervall);
+			return;
+		} 
+		// go left
+		snake.unshift([snake[0][0],snake[0][1]-1]);
+	}
+	
+	function goRight(snake, x, y, direct, prevdirect) {
+		if (prevdirect == "left") {
+			goLeft(snake, x, y, direct, prevdirect);
+			direct = "left";
+			obj.direction(direct);
+			return;
+		}
+		if (snake[0][1] >= y-1) {
+			clearInterval(intervall);
+			return;
+		} 
+		snake.unshift([snake[0][0],snake[0][1]+1]);
+	}
+	
+	function goUp(snake, x, y, direct, prevdirect) {
+		if (prevdirect == "down") {
+			goDown(snake, x, y, direct, prevdirect);
+			direct = "down";
+			obj.direction(direct);
+			return;
+		}
+		if (snake[0][0] < 1) {
+			clearInterval(intervall);
+			return;
+		} 
+		snake.unshift([snake[0][0]-1,snake[0][1]]);
+	}
+	
+	function goDown(snake, x, y, direct, prevdirect) {
+		if (prevdirect == "up") {
+			goUp(snake, x, y, direct, prevdirect);
+			direct = "up";
+			obj.direction(direct);
+			return;
+		}
+		if (snake[0][0] >= x-1) {
+			clearInterval(intervall);
+			return;
+		} 
+		snake.unshift([snake[0][0]+1,snake[0][1]]);
 	}
 	
 	// generate food
@@ -141,28 +170,39 @@ document.addEventListener('DOMContentLoaded', function() {
 	// check which key was pressed
 	document.addEventListener("keydown", function findKey(evt) {
     const key = evt.key;
-	direction(key);
-	});
+	obj.arrow(key);
+	}); 
 	
-	// setting direction for directionMove function
-	function direction(key) {
+	
+	var obj = {
+		direct: "right",
+		prevdirect: "",
+		
+		arrow: function(key) {
+		// setting direction for directionMove function
 		if (key == "ArrowLeft") {
-			prevdirect = direct;
-			direct = "left";
+			this.prevdirect = this.direct;
+			this.direct = "left";
 		}
 		if (key == "ArrowRight") {
-			prevdirect = direct;
-			direct = "right";
+			this.prevdirect = this.direct;
+			this.direct = "right";
 		}
 		if (key == "ArrowUp") {
-			prevdirect = direct;
-			direct = "up";
+			this.prevdirect = this.direct;
+			this.direct = "up";
 		}
 		if (key == "ArrowDown") {
-			prevdirect = direct;
-			direct = "down";
-		}
-	} 
+			this.prevdirect = this.direct;
+			this.direct = "down";
+		} 
+		},
+		
+		direction: function(direct) {
+			this.direct = direct || this.direct;
+			return [this.direct, this.prevdirect];
+		}	
+	}
 	
 	const tableElements = drawTable(20,20);
 	const board = tableElements[0];
@@ -173,15 +213,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	const snakee = snakeLength(board);	// snake
 	
 	const intervall = setInterval(function() {
-			directionMove(snakee, sizeX, sizeY);
+			directionMove(snakee, sizeX, sizeY, obj.direction()[0], obj.direction()[1]);
 			snakeMove(snakee, board, sizeX, sizeY);
 			sync(board, sizeX, sizeY, tdPosition);
 		}, 300);
 	
 	sync(board, sizeX, sizeY, tdPosition);
 	randomPixel(board, sizeX, sizeY);
-
-
-	
-	
 });
