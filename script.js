@@ -1,9 +1,10 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 	
+	const container = document.getElementById("container");
+	
 	// draw table and wirtual board
 	function drawTable(x, y) {
-		const container = document.getElementById("container");
 		const table = document.createElement("table");
 		container.appendChild(table);
 		const boardArr = [];
@@ -42,14 +43,14 @@ document.addEventListener('DOMContentLoaded', function() {
 			for (j=0; j < sizeX; j++) {
 				if (board[i][j] == 1) {
 					tdPosition[i][j].classList.add("snake");
-					tdPosition[i][j].classList.remove("snake2");
+					tdPosition[i][j].classList.remove("food");
 				}
 				if (board[i][j] == 2) {
-					tdPosition[i][j].classList.add("snake2");
+					tdPosition[i][j].classList.add("food");
 				}
 				if (board[i][j] == 0) {
 					tdPosition[i][j].classList.remove("snake");
-					tdPosition[i][j].classList.remove("snake2");
+					tdPosition[i][j].classList.remove("food");
 				}
 			}
 		}
@@ -59,12 +60,15 @@ document.addEventListener('DOMContentLoaded', function() {
 	function snakeMove(snake, boardArr, x, y ) {	
 			// if snake eat itself
 			if (boardArr[snake[0][0]][snake[0][1]] == 1) {
+				gameOver();
 				clearInterval(intervall);
 				return;
 			}
 			// if snake eat red food
 			if (boardArr[snake[0][0]][snake[0][1]] == 2) {
 				boardArr[snake[0][0]][snake[0][1]] = 1;
+				scoreQuantity += 10;
+				getAndShowScore(scoreQuantity)
 				randomPixel(boardArr, x, y);
 			}
 			// snake move forward 
@@ -97,11 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (prevdirect == "right") {
 			goRight(snake, x, y, direct, prevdirect);
 			direct = "right";
-			obj.direction(direct);
+			SetAndReadDirection.direction(direct);
 			return;
 		}
 		// colllizion with left wall check
 		if (snake[0][1] < 1 ) {
+			//gameOver();
 			clearInterval(intervall);
 			return;
 		} 
@@ -113,10 +118,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (prevdirect == "left") {
 			goLeft(snake, x, y, direct, prevdirect);
 			direct = "left";
-			obj.direction(direct);
+			SetAndReadDirection.direction(direct);
 			return;
 		}
 		if (snake[0][1] >= y-1) {
+			//gameOver();
 			clearInterval(intervall);
 			return;
 		} 
@@ -127,10 +133,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (prevdirect == "down") {
 			goDown(snake, x, y, direct, prevdirect);
 			direct = "down";
-			obj.direction(direct);
+			SetAndReadDirection.direction(direct);
 			return;
 		}
 		if (snake[0][0] < 1) {
+			//gameOver();
 			clearInterval(intervall);
 			return;
 		} 
@@ -141,10 +148,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (prevdirect == "up") {
 			goUp(snake, x, y, direct, prevdirect);
 			direct = "up";
-			obj.direction(direct);
+			SetAndReadDirection.direction(direct);
 			return;
 		}
 		if (snake[0][0] >= x-1) {
+			//gameOver();
 			clearInterval(intervall);
 			return;
 		} 
@@ -170,11 +178,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	// check which key was pressed
 	document.addEventListener("keydown", function findKey(evt) {
     const key = evt.key;
-	obj.arrow(key);
+	SetAndReadDirection.arrow(key);
 	}); 
 	
 	
-	var obj = {
+	const SetAndReadDirection = {
 		direct: "right",
 		prevdirect: "",
 		
@@ -204,20 +212,96 @@ document.addEventListener('DOMContentLoaded', function() {
 		}	
 	}
 	
+	const setScore = {
+		score: 0,
+		
+		createScoreBox: function(scoreQuantity)  {
+		const createScoreDiv = document.createElement("div");
+		createScoreDiv.id = "score";
+		container.appendChild(createScoreDiv);
+		},
+		
+		returnScore: function() {
+			return this.score;
+		}
+	}
+	
+	function getAndShowScore(scoreQuantity) {
+		const getScore = document.getElementById("score");
+		getScore.innerText = "Score: " + scoreQuantity;
+	}
+	
+	
+	function gameOver() {
+		const gameOverDiv = document.createElement("div");
+		gameOverDiv.id = "gameOverDiv";
+		gameOverDiv.innerText = "GAME OVER"
+		container.appendChild(gameOverDiv);
+		playAgain(gameOverDiv);
+	}
+	
+	function playAgain(gameOverDiv) {
+		const playAgainButton = document.createElement("button");
+		playAgainButton.id = "playAgain";
+		playAgainButton.innerText = "Play Again";
+		gameOverDiv.appendChild(playAgainButton);
+		resetGame(playAgainButton);
+	}
+	
+	function resetGame(playAgainButton) {
+		playAgainButton.addEventListener("click", function() {
+			location.reload();
+		})
+	}
+	
+	
+	function time() {
+		let timer;
+		if (scoreQuantity >= 0 && scoreQuantity < 50) {
+			timer = 300;
+		}
+		if (scoreQuantity >= 50 && scoreQuantity < 100) {
+			timer = 200;
+		}
+		if (scoreQuantity >= 100 && scoreQuantity < 150) {
+			timer = 150;
+		}
+		if (scoreQuantity >= 150 && scoreQuantity < 200) {
+			timer = 100;
+		}
+		if (scoreQuantity >= 200 && scoreQuantity < 300) {
+			timer = 70;
+		}
+		if (scoreQuantity >= 300) {
+			timer = 50;
+		}
+		return timer;
+	}
+	
+	
 	const tableElements = drawTable(20,20);
 	const board = tableElements[0];
 	const sizeX = tableElements[1];
 	const sizeY = tableElements[2];
 	const tdPosition = tableElements[3];
 	
-	const snakee = snakeLength(board);	// snake
+	const snakee = snakeLength(board);		// returns snake
+	let scoreQuantity =  setScore.returnScore(); // returns score
+	
+	
 	
 	const intervall = setInterval(function() {
-			directionMove(snakee, sizeX, sizeY, obj.direction()[0], obj.direction()[1]);
+			directionMove(snakee, sizeX, sizeY, SetAndReadDirection.direction()[0], SetAndReadDirection.direction()[1]);
 			snakeMove(snakee, board, sizeX, sizeY);
 			sync(board, sizeX, sizeY, tdPosition);
-		}, 300);
+			console.log("score: ", scoreQuantity);
+			console.log("time: ", time());
+		}, time());
 	
 	sync(board, sizeX, sizeY, tdPosition);
 	randomPixel(board, sizeX, sizeY);
+	setScore.createScoreBox(scoreQuantity);
+	getAndShowScore(scoreQuantity);
+	
+
 });
