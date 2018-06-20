@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	// synchronize table witch wirtual board
-	function sync(board, sizeX, sizeY, tdPosition) {
+	function sync(board, sizeX, sizeY, tdPosition, loop) {
 		for (i=0; i < sizeY; i++) {
 			for (j=0; j < sizeX; j++) {
 				if (board[i][j] == 1) {
@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			}
 		}
+		loop;
 	}
 	
 	// when snake should move and stop
@@ -61,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			// if snake eat itself
 			if (boardArr[snake[0][0]][snake[0][1]] == 1) {
 				gameOver();
-				clearInterval(intervall);
+				clearTimeout(loop);
 				return;
 			}
 			// if snake eat red food
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		// colllizion with left wall check
 		if (snake[0][1] < 1 ) {
 			//gameOver();
-			clearInterval(intervall);
+			clearTimeout(loop);
 			return;
 		} 
 		// go left
@@ -123,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		if (snake[0][1] >= y-1) {
 			//gameOver();
-			clearInterval(intervall);
+			clearTimeout(loop);
 			return;
 		} 
 		snake.unshift([snake[0][0],snake[0][1]+1]);
@@ -138,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		if (snake[0][0] < 1) {
 			//gameOver();
-			clearInterval(intervall);
+			clearTimeout(loop);
 			return;
 		} 
 		snake.unshift([snake[0][0]-1,snake[0][1]]);
@@ -153,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		if (snake[0][0] >= x-1) {
 			//gameOver();
-			clearInterval(intervall);
+			clearTimeout(loop);
 			return;
 		} 
 		snake.unshift([snake[0][0]+1,snake[0][1]]);
@@ -219,9 +220,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		const createScoreDiv = document.createElement("div");
 		createScoreDiv.id = "score";
 		container.appendChild(createScoreDiv);
+		//setScore.innerText = "Score: " + scoreQuantity;
 		},
 		
 		returnScore: function() {
+			//this.score = scoreQuantity || this.score;
 			return this.score;
 		}
 	}
@@ -254,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		})
 	}
 	
-	
+	// Speed up snake when score grow
 	function time() {
 		let timer;
 		if (scoreQuantity >= 0 && scoreQuantity < 50) {
@@ -285,23 +288,20 @@ document.addEventListener('DOMContentLoaded', function() {
 	const sizeY = tableElements[2];
 	const tdPosition = tableElements[3];
 	
-	const snakee = snakeLength(board);		// returns snake
-	let scoreQuantity =  setScore.returnScore(); // returns score
+	const snakee = snakeLength(board);				// returns snake
+	let scoreQuantity = setScore.returnScore(); 	// returns score
 	
-	
-	
-	const intervall = setInterval(function() {
-			directionMove(snakee, sizeX, sizeY, SetAndReadDirection.direction()[0], SetAndReadDirection.direction()[1]);
-			snakeMove(snakee, board, sizeX, sizeY);
-			sync(board, sizeX, sizeY, tdPosition);
-			console.log("score: ", scoreQuantity);
-			console.log("time: ", time());
-		}, time());
+	function loop() {
+		directionMove(snakee, sizeX, sizeY, SetAndReadDirection.direction()[0], SetAndReadDirection.direction()[1]);
+		snakeMove(snakee, board, sizeX, sizeY);
+		sync(board, sizeX, sizeY, tdPosition);
+		setTimeout(loop, time());
+	}
 	
 	sync(board, sizeX, sizeY, tdPosition);
 	randomPixel(board, sizeX, sizeY);
 	setScore.createScoreBox(scoreQuantity);
 	getAndShowScore(scoreQuantity);
-	
+	loop();
 
 });
