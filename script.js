@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 	
 	const container = document.getElementById("container");
+	let gamePlay = true;
 	
 	// draw table and wirtual board
 	function drawTable(x, y) {
@@ -38,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	// synchronize table witch wirtual board
-	function sync(board, sizeX, sizeY, tdPosition, loop) {
+	function sync(board, sizeX, sizeY, tdPosition) {
 		for (i=0; i < sizeY; i++) {
 			for (j=0; j < sizeX; j++) {
 				if (board[i][j] == 1) {
@@ -54,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
 				}
 			}
 		}
-		loop;
 	}
 	
 	// when snake should move and stop
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			// if snake eat itself
 			if (boardArr[snake[0][0]][snake[0][1]] == 1) {
 				gameOver();
-				clearTimeout(loop);
+				gamePlay = false;
 				return;
 			}
 			// if snake eat red food
@@ -107,8 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 		// colllizion with left wall check
 		if (snake[0][1] < 1 ) {
-			//gameOver();
-			clearTimeout(loop);
+			gamePlay = false;
 			return;
 		} 
 		// go left
@@ -123,8 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			return;
 		}
 		if (snake[0][1] >= y-1) {
-			//gameOver();
-			clearTimeout(loop);
+			gamePlay = false;
 			return;
 		} 
 		snake.unshift([snake[0][0],snake[0][1]+1]);
@@ -138,8 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			return;
 		}
 		if (snake[0][0] < 1) {
-			//gameOver();
-			clearTimeout(loop);
+			gamePlay = false;
 			return;
 		} 
 		snake.unshift([snake[0][0]-1,snake[0][1]]);
@@ -153,8 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			return;
 		}
 		if (snake[0][0] >= x-1) {
-			//gameOver();
-			clearTimeout(loop);
+			gamePlay = false;
 			return;
 		} 
 		snake.unshift([snake[0][0]+1,snake[0][1]]);
@@ -174,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		//console.log(pixelArr[random]); // zwraca wspolrzedne w tablicy
 		//console.log(pixelArr[random][0]); // zwraca pierwsza wspolrzedna z tablicy pixelArr
 		board[pixelArr[random][0]][pixelArr[random][1]] = 2;
+		checkWin(pixelArr);
 	}
 	
 	// check which key was pressed
@@ -205,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			this.prevdirect = this.direct;
 			this.direct = "down";
 		} 
-		},
+	},
 		
 		direction: function(direct) {
 			this.direct = direct || this.direct;
@@ -220,11 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		const createScoreDiv = document.createElement("div");
 		createScoreDiv.id = "score";
 		container.appendChild(createScoreDiv);
-		//setScore.innerText = "Score: " + scoreQuantity;
 		},
 		
 		returnScore: function() {
-			//this.score = scoreQuantity || this.score;
 			return this.score;
 		}
 	}
@@ -234,6 +229,22 @@ document.addEventListener('DOMContentLoaded', function() {
 		getScore.innerText = "Score: " + scoreQuantity;
 	}
 	
+	function checkWin(pixelArr) {
+		const three = (sizeX*sizeY)-(sizeX*sizeY-3);
+		if (pixelArr.length < three) {
+			showWin();
+			gamePlay = false;
+		}
+	}
+	
+	function showWin() {
+		const winDiv = document.createElement("div");
+		winDiv.id = "winDiv";
+		winDiv.classList.add("winDiv");
+		winDiv.innerText = "Yeah! YOU WIN!"
+		container.appendChild(winDiv);
+		playAgain(winDiv);
+	}
 	
 	function gameOver() {
 		const gameOverDiv = document.createElement("div");
@@ -243,11 +254,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		playAgain(gameOverDiv);
 	}
 	
-	function playAgain(gameOverDiv) {
+	function playAgain(playAgainParent) {
 		const playAgainButton = document.createElement("button");
 		playAgainButton.id = "playAgain";
 		playAgainButton.innerText = "Play Again";
-		gameOverDiv.appendChild(playAgainButton);
+		playAgainParent.appendChild(playAgainButton);
 		resetGame(playAgainButton);
 	}
 	
@@ -292,16 +303,22 @@ document.addEventListener('DOMContentLoaded', function() {
 	let scoreQuantity = setScore.returnScore(); 	// returns score
 	
 	function loop() {
+		if (gamePlay == false) {
+			return;
+		}
 		directionMove(snakee, sizeX, sizeY, SetAndReadDirection.direction()[0], SetAndReadDirection.direction()[1]);
 		snakeMove(snakee, board, sizeX, sizeY);
 		sync(board, sizeX, sizeY, tdPosition);
+		console.log("idzie");
 		setTimeout(loop, time());
 	}
+	
 	
 	sync(board, sizeX, sizeY, tdPosition);
 	randomPixel(board, sizeX, sizeY);
 	setScore.createScoreBox(scoreQuantity);
 	getAndShowScore(scoreQuantity);
 	loop();
+	console.log((sizeX*sizeY)-(sizeX*sizeY-3));
 
 });
